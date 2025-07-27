@@ -11,7 +11,12 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.837.0",
     "@aws-sdk/s3-request-presigner": "^3.839.0",
+    "@types/axios": "^0.9.36",
+    "axios": "^1.10.0",
     "next": "15.3.4",
+    "plotly.js": "^3.0.3",
+    "plotly.js-dist": "^3.0.1",
+    "plotly.js-dist-min": "^3.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -20,6 +25,8 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/plotly.js": "^3.0.2",
+    "@types/plotly.js-dist-min": "^2.3.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
