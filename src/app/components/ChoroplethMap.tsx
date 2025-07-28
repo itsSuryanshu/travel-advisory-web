@@ -58,11 +58,12 @@ export default function Choropleth({ data }: ChoroplethProps) {
         ],
         showscale: true,
         colorbar: {
+          //bgcolor: "7A7A7A",
           orientation: "h",
           x: 0,
-          y: -0.15,
+          y: -0,
           xanchor: "left",
-          xpad: 40,
+          xpad: 500,
           title: {
             text: "Risk Level",
             side: "top",
@@ -115,7 +116,7 @@ export default function Choropleth({ data }: ChoroplethProps) {
         resolution: 110,
       },
       autosize: true,
-      margin: { t: 60, r: 120, b: 40, l: 40 },
+      margin: { t: 0, r: 0, b: 0, l: 0 },
     };
 
     const config: Partial<Config> = {
