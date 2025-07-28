@@ -15,6 +15,16 @@ interface ChoroplethProps {
   data: ParsedData[];
 }
 
+const ColorBox = ({ color, label }: { color: string; label: string }) => (
+  <div className="flex items-center gap-1 text-xs">
+    <div
+      className="w-5 h-5 rounded-sm"
+      style={{ backgroundColor: color }}
+    ></div>
+    <span className="font-[family-name:var(--font-geist-mono)]">{label}</span>
+  </div>
+);
+
 export default function Choropleth({ data }: ChoroplethProps) {
   const plotRef = useRef<HTMLDivElement>(null);
   const getRiskLevel = (risk: string): number => {
@@ -27,6 +37,53 @@ export default function Choropleth({ data }: ChoroplethProps) {
     return riskMap[risk];
   };
 
+  const resizeMap = () => {
+    if (!plotRef.current) return;
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    let width = windowWidth;
+    let height = windowHeight;
+    let offsetx = 0;
+    let offsety = 0;
+
+    if (windowWidth <= 480) {
+      // phones
+      width = windowWidth * 8;
+      //height = 915;
+      height = windowHeight * 2.5;
+      offsetx = -(width - windowWidth) / 2;
+      offsety = -(height - windowHeight) / 2;
+    } else if (windowWidth <= 768) {
+      // ipad/tablet
+      width = windowWidth * 5;
+      //height = 1024;
+      height = windowHeight * 2;
+      offsetx = -(width - windowWidth) / 2;
+      offsety = -(height - windowHeight) / 2;
+    } else if (windowWidth <= 1024) {
+      // big ipad or small laptop
+      width = windowWidth * 5;
+      //height = 1366;
+      height = windowHeight * 2;
+      offsetx = -(width - windowWidth) / 2;
+      offsety = -(height - windowHeight) / 2;
+    }
+
+    if (plotRef.current) {
+      plotRef.current.style.left = `${offsetx}px`;
+      plotRef.current.style.top = `${offsety}px`;
+    }
+
+    const update: Partial<Layout> = {
+      width: width,
+      height: height,
+      autosize: false,
+    };
+    Plotly.relayout(plotRef.current, update);
+  };
+
   useEffect(() => {
     if (!plotRef.current || !data.length) return;
 
@@ -35,7 +92,6 @@ export default function Choropleth({ data }: ChoroplethProps) {
     const risks = data.map((d) => getRiskLevel(d["Risk Level"]));
     const hoverText = data.map(
       (d) =>
-        `<br>` +
         `<b>${d["Country"]}</b><br>` +
         `Risk Level: ${d["Risk Level"]}<br>` +
         `Description: ${d["Description"]}<br>` +
@@ -56,14 +112,17 @@ export default function Choropleth({ data }: ChoroplethProps) {
           [0.66, "#ce6711"],
           [1, "#b30003"],
         ],
-        showscale: true,
+        showscale: false, //hide the scale
         colorbar: {
           //bgcolor: "7A7A7A",
           orientation: "h",
-          x: 0,
-          y: -0,
-          xanchor: "left",
-          xpad: 500,
+          x: 0.5,
+          y: 0,
+          xanchor: "center",
+          yanchor: "bottom",
+          //xpad: 500,
+          len: 0.4,
+          thickness: 15,
           title: {
             text: "Risk Level",
             side: "top",
@@ -90,6 +149,9 @@ export default function Choropleth({ data }: ChoroplethProps) {
       },
     ];
 
+    const initialWidth = window.innerWidth;
+    const initialHeight = window.innerHeight;
+
     const layout: Partial<Layout> = {
       // title: {
       //   text: "Canadian Travel Advisory",
@@ -110,30 +172,68 @@ export default function Choropleth({ data }: ChoroplethProps) {
         showland: true,
         landcolor: "#f0f0f0",
         showocean: true,
-        oceancolor: "ccf2ff",
+        oceancolor: "#ccf2ff",
         showcountries: true,
-
         resolution: 110,
       },
-      autosize: true,
+      autosize: false,
+      width: initialWidth,
+      height: initialHeight,
       margin: { t: 0, r: 0, b: 0, l: 0 },
     };
 
     const config: Partial<Config> = {
-      responsive: true,
+      responsive: false,
       displayModeBar: true,
       displaylogo: false,
+      scrollZoom: true,
+      autosizable: true,
       modeBarButtonsToRemove: ["select2d", "lasso2d", "toImage"],
     };
 
-    Plotly.newPlot(plotElement, plotData, layout, config);
+    Plotly.newPlot(plotElement, plotData, layout, config).then(() => {
+      resizeMap();
+    });
+
+    const handleResize = () => {
+      setTimeout(resizeMap, 100);
+    };
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
+      window.removeEventListener("resize", handleResize);
       if (plotElement) {
         Plotly.purge(plotElement);
       }
     };
   }, [data]);
 
-  return <div ref={plotRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-screen h-screen">
+      <div
+        ref={plotRef}
+        className="absolute inset-0"
+        style={{
+          minHeight: "100%",
+          minWidth: "100%",
+          top: 0,
+          left: 0,
+          transformOrigin: "center center",
+        }}
+      />
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/50 backdrop-blur-md border border-black px-4 sm:px-2 py-2 sm:py-1.5 rounded-full shadow-lg flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs font-mono sm:rounded-sm max-w-[95vw]">
+        <span className="font-[family-name:var(--font-geist-mono)] font-bold">
+          Risk Levels:
+        </span>
+        <ColorBox color="#75ef75" label="Normal Precautions" />
+        <div className="w-px h-6 bg-gray-400"></div>
+        <ColorBox color="#e2e65b" label="Increased Caution" />
+        <div className="w-px h-6 bg-gray-400"></div>
+        <ColorBox color="#ce6711" label="Reconsider Travel" />
+        <div className="w-px h-6 bg-gray-400"></div>
+        <ColorBox color="#b30003" label="Do Not Travel" />
+      </div>
+    </div>
+  );
 }
