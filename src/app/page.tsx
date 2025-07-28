@@ -13,7 +13,8 @@ import ChoroplethMap from "@/app/components/ChoroplethMap";
 // }
 
 export default function Home() {
-  const { data, parsedData, isLoading, error, fetchCSVData, parseCSVData } = useCSV();
+  const { data, parsedData, isLoading, error, fetchCSVData, parseCSVData } =
+    useCSV();
 
   useEffect(() => {
     fetchCSVData();
@@ -26,19 +27,15 @@ export default function Home() {
   }, [data, parseCSVData]);
 
   if (isLoading) {
-    return (
-      <div>Loading Map...</div>
-    );
+    return <div>Loading Map...</div>;
   }
 
   if (error) {
-    return (
-      <div>Error: {error}</div>
-    );
+    return <div>Error: {error}</div>;
   }
 
   return (
-    <div>
+    <div className="w-screen h-screen overflow-hidden">
       {/* <div>
         <h3>Parsed Data:</h3>
         <pre>{JSON.stringify(parsedData, null, 2)}</pre>
