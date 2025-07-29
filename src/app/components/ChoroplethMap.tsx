@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as Plotly from "plotly.js";
-import type { Data, Layout, Config } from "plotly.js";
 
 interface ParsedData {
   Country: string;
@@ -41,187 +39,202 @@ export default function Choropleth({
     return riskMap[risk];
   };
 
-  const resizeMap = () => {
-    if (!plotRef.current) return;
-
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-
-    let width = windowWidth;
-    let height = windowHeight;
-    let offsetx = 0;
-    let offsety = 0;
-
-    if (windowWidth <= 480) {
-      // phones
-      width = windowWidth * 8;
-      //height = 915;
-      height = windowHeight * 2.5;
-      offsetx = -(width - windowWidth) / 2;
-      offsety = -(height - windowHeight) / 2;
-    } else if (windowWidth <= 768) {
-      // ipad/tablet
-      width = windowWidth * 5;
-      //height = 1024;
-      height = windowHeight * 2;
-      offsetx = -(width - windowWidth) / 2;
-      offsety = -(height - windowHeight) / 2;
-    } else if (windowWidth <= 1024) {
-      // big ipad or small laptop
-      width = windowWidth * 5;
-      //height = 1366;
-      height = windowHeight * 2;
-      offsetx = -(width - windowWidth) / 2;
-      offsety = -(height - windowHeight) / 2;
-    }
-
-    if (plotRef.current) {
-      plotRef.current.style.left = `${offsetx}px`;
-      plotRef.current.style.top = `${offsety}px`;
-    }
-
-    const update: Partial<Layout> = {
-      width: width,
-      height: height,
-      autosize: false,
-    };
-    Plotly.relayout(plotRef.current, update);
-  };
-
   useEffect(() => {
     if (!plotRef.current || !data.length) return;
-    let target: ParsedData | undefined;
-    if (targetCountry) {
-      target = data.find((item) => item.Country === targetCountry);
-    }
 
-    const plotElement = plotRef.current;
-    const locations = target ? [target.Country] : data.map((d) => d["Country"]);
-    const risks = target
-      ? [getRiskLevel(target["Risk Level"])]
-      : data.map((d) => getRiskLevel(d["Risk Level"]));
-    const hoverText = target
-      ? `<b>${target.Country}</b><br>` +
-        `Risk Level: ${target["Risk Level"]}<br>` +
-        `Description: ${target.Description}<br>` +
-        `Last Updated: ${target["Last Updated"]}`
-      : data.map(
-          (d) =>
-            `<b>${d["Country"]}</b><br>` +
-            `Risk Level: ${d["Risk Level"]}<br>` +
-            `Description: ${d["Description"]}<br>` +
-            `Last Updated: ${d["Last Updated"]}`,
-        );
+    let isMounted = true;
+    const cleanupFunctions: (() => void)[] = [];
 
-    const plotData: Partial<Data>[] = [
-      {
-        type: "choropleth",
-        locationmode: "country names",
-        locations,
-        z: risks,
-        text: hoverText,
-        hovertemplate: "%{text}<extra></extra>",
-        colorscale: [
-          [0, "#75ef75"],
-          [0.33, "#e2e65b"],
-          [0.66, "#ff7d3c"],
-          [1, "#d42e2e"],
-        ],
-        showscale: false, //hide the scale
-        colorbar: {
-          //bgcolor: "7A7A7A",
-          orientation: "h",
-          x: 0.5,
-          y: 0,
-          xanchor: "center",
-          yanchor: "bottom",
-          //xpad: 500,
-          len: 0.4,
-          thickness: 15,
-          title: {
-            text: "Risk Level",
-            side: "top",
-            font: {
-              family: "Geist Mono",
-              size: 16,
+    const initializePlot = async () => {
+      try {
+        const Plotly = await import("plotly.js");
+
+        if (!isMounted || !plotRef.current) return;
+
+        let target: ParsedData | undefined;
+        if (targetCountry) {
+          target = data.find((item) => item.Country === targetCountry);
+        }
+
+        const plotElement = plotRef.current;
+        const locations = target
+          ? [target.Country]
+          : data.map((d) => d["Country"]);
+        const risks = target
+          ? [getRiskLevel(target["Risk Level"])]
+          : data.map((d) => getRiskLevel(d["Risk Level"]));
+        const hoverText = target
+          ? `<b>${target.Country}</b><br>` +
+            `Risk Level: ${target["Risk Level"]}<br>` +
+            `Description: ${target.Description}<br>` +
+            `Last Updated: ${target["Last Updated"]}`
+          : data.map(
+              (d) =>
+                `<b>${d["Country"]}</b><br>` +
+                `Risk Level: ${d["Risk Level"]}<br>` +
+                `Description: ${d["Description"]}<br>` +
+                `Last Updated: ${d["Last Updated"]}`,
+            );
+
+        const plotData = [
+          {
+            type: "choropleth" as const,
+            locationmode: "country names" as const,
+            locations,
+            z: risks,
+            text: hoverText,
+            hovertemplate: "%{text}<extra></extra>",
+            colorscale: [
+              [0, "#75ef75"],
+              [0.33, "#e2e65b"],
+              [0.66, "#ce6711"],
+              [1, "#b30003"],
+            ] as [number, string][],
+            showscale: false,
+            colorbar: {
+              orientation: "h" as const,
+              x: 0.5,
+              y: 0,
+              xanchor: "center" as const,
+              yanchor: "bottom" as const,
+              len: 0.4,
+              thickness: 15,
+              title: {
+                text: "Risk Level",
+                side: "top" as const,
+                font: {
+                  family: "Geist Mono",
+                  size: 16,
+                },
+              },
+              tickvals: [1, 2, 3, 4],
+              ticktext: [
+                "Normal Precautions",
+                "Increased Caution",
+                "Reconsider Travel",
+                "Do Not Travel",
+              ],
+              ticks: "outside" as const,
+              showticklabels: true,
+              ticklabelposition: "outside" as const,
+              tickfont: {
+                family: "Geist Mono",
+                size: 12,
+              },
             },
           },
-          tickvals: [1, 2, 3, 4],
-          ticktext: [
-            "Normal Precautions",
-            "Increased Caution",
-            "Reconsider Travel",
-            "Do Not Travel",
-          ],
-          ticks: "outside",
-          showticklabels: true,
-          ticklabelposition: "outside",
-          tickfont: {
-            family: "Geist Mono",
-            size: 12,
+        ];
+
+        const initialWidth = window.innerWidth;
+        const initialHeight = window.innerHeight;
+
+        const layout = {
+          geo: {
+            projection: {
+              type: "equirectangular" as const,
+            },
+            domain: {
+              x: [0, 1],
+              y: [0, 1],
+            },
+            fitbounds: "locations" as const,
+            showframe: false,
+            showcoastlines: true,
+            coastlinecolor: "#444",
+            showland: true,
+            landcolor: "#f0f0f0",
+            showocean: true,
+            oceancolor: "#ccf2ff",
+            showcountries: true,
+            resolution: 50,
           },
-        },
-      },
-    ];
+          autosize: false,
+          width: initialWidth,
+          height: initialHeight,
+          margin: { t: 0, r: 0, b: 0, l: 0 },
+        };
 
-    const initialWidth = window.innerWidth;
-    const initialHeight = window.innerHeight;
+        const config = {
+          responsive: false,
+          displayModeBar: true,
+          displaylogo: false,
+          scrollZoom: true,
+          autosizable: true,
+          modeBarButtonsToRemove: ["select2d", "lasso2d", "toImage"],
+        };
 
-    const layout: Partial<Layout> = {
-      // title: {
-      //   text: "Canadian Travel Advisory",
-      //   x: 0.5,
-      //   font: { size: 25 },
-      // },
-      geo: {
-        projection: {
-          type: "equirectangular",
-        },
-        domain: {
-          x: [0, 1],
-          y: [0, 1],
-        },
-        fitbounds: "locations",
-        showframe: false,
-        showcoastlines: true,
-        coastlinecolor: "#444",
-        showland: true,
-        landcolor: "#f0f0f0",
-        showocean: true,
-        oceancolor: "#ccf2ff",
-        showcountries: true,
-        resolution: 50,
-      },
-      autosize: false,
-      width: initialWidth,
-      height: initialHeight,
-      margin: { t: 0, r: 0, b: 0, l: 0 },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await Plotly.newPlot(plotElement, plotData, layout, config as any);
+
+        if (!isMounted) return;
+
+        // Resize function that uses the loaded Plotly
+        const resizeMapWithPlotly = async () => {
+          if (!plotRef.current) return;
+
+          const windowWidth = window.innerWidth;
+          const windowHeight = window.innerHeight;
+
+          let width = windowWidth;
+          let height = windowHeight;
+          let offsetx = 0;
+          let offsety = 0;
+
+          if (windowWidth <= 480) {
+            width = windowWidth * 8;
+            height = windowHeight * 2.5;
+            offsetx = -(width - windowWidth) / 2;
+            offsety = -(height - windowHeight) / 2;
+          } else if (windowWidth <= 768) {
+            width = windowWidth * 5;
+            height = windowHeight * 2;
+            offsetx = -(width - windowWidth) / 2;
+            offsety = -(height - windowHeight) / 2;
+          } else if (windowWidth <= 1024) {
+            width = windowWidth * 5;
+            height = windowHeight * 2;
+            offsetx = -(width - windowWidth) / 2;
+            offsety = -(height - windowHeight) / 2;
+          }
+
+          if (plotRef.current) {
+            plotRef.current.style.left = `${offsetx}px`;
+            plotRef.current.style.top = `${offsety}px`;
+          }
+
+          const update = {
+            width: width,
+            height: height,
+            autosize: false,
+          };
+
+          await Plotly.relayout(plotRef.current, update);
+        };
+
+        await resizeMapWithPlotly();
+
+        const handleResize = () => {
+          setTimeout(resizeMapWithPlotly, 100);
+        };
+
+        window.addEventListener("resize", handleResize);
+
+        cleanupFunctions.push(() => {
+          window.removeEventListener("resize", handleResize);
+          if (plotElement) {
+            Plotly.purge(plotElement);
+          }
+        });
+      } catch (error) {
+        console.error("Failed to load Plotly:", error);
+      }
     };
 
-    const config: Partial<Config> = {
-      responsive: false,
-      displayModeBar: true,
-      displaylogo: false,
-      scrollZoom: true,
-      autosizable: true,
-      modeBarButtonsToRemove: ["select2d", "lasso2d", "toImage"],
-    };
-
-    Plotly.newPlot(plotElement, plotData, layout, config).then(() => {
-      resizeMap();
-    });
-
-    const handleResize = () => {
-      setTimeout(resizeMap, 100);
-    };
-
-    window.addEventListener("resize", handleResize);
+    initializePlot();
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-      if (plotElement) {
-        Plotly.purge(plotElement);
-      }
+      isMounted = false;
+      cleanupFunctions.forEach((cleanup) => cleanup());
     };
   }, [data, targetCountry]);
 
@@ -247,9 +260,9 @@ export default function Choropleth({
         <div className="w-px h-6 bg-gray-400"></div>
         <ColorBox color="#e2e65b" label="Increased Caution" />
         <div className="w-px h-6 bg-gray-400"></div>
-        <ColorBox color="#ff7d3c" label="Reconsider Travel" />
+        <ColorBox color="#ce6711" label="Reconsider Travel" />
         <div className="w-px h-6 bg-gray-400"></div>
-        <ColorBox color="#d42e2e" label="Do Not Travel" />
+        <ColorBox color="#b30003" label="Do Not Travel" />
       </div>
       {/* Phone version */}
       <div className="flex sm:hidden fixed top-6 left-4 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-md shadow-lg flex-col items-start gap-2 text-xs font-mono">
@@ -258,8 +271,8 @@ export default function Choropleth({
         </span>
         <ColorBox color="#75ef75" label="Normal Precautions" />
         <ColorBox color="#e2e65b" label="Increased Caution" />
-        <ColorBox color="#ff7d3c" label="Reconsider Travel" />
-        <ColorBox color="#d42e2e" label="Do Not Travel" />
+        <ColorBox color="#ce6711" label="Reconsider Travel" />
+        <ColorBox color="#b30003" label="Do Not Travel" />
       </div>
     </div>
   );
