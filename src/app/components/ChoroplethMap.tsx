@@ -13,6 +13,7 @@ interface ParsedData {
 
 interface ChoroplethProps {
   data: ParsedData[];
+  targetCountry: string | null;
 }
 
 const ColorBox = ({ color, label }: { color: string; label: string }) => (
@@ -25,7 +26,10 @@ const ColorBox = ({ color, label }: { color: string; label: string }) => (
   </div>
 );
 
-export default function Choropleth({ data }: ChoroplethProps) {
+export default function Choropleth({
+  data,
+  targetCountry = null,
+}: ChoroplethProps) {
   const plotRef = useRef<HTMLDivElement>(null);
   const getRiskLevel = (risk: string): number => {
     const riskMap: Record<string, number> = {
@@ -86,17 +90,28 @@ export default function Choropleth({ data }: ChoroplethProps) {
 
   useEffect(() => {
     if (!plotRef.current || !data.length) return;
+    let target: ParsedData | undefined;
+    if (targetCountry) {
+      target = data.find((item) => item.Country === targetCountry);
+    }
 
     const plotElement = plotRef.current;
-    const locations = data.map((d) => d["Country"]);
-    const risks = data.map((d) => getRiskLevel(d["Risk Level"]));
-    const hoverText = data.map(
-      (d) =>
-        `<b>${d["Country"]}</b><br>` +
-        `Risk Level: ${d["Risk Level"]}<br>` +
-        `Description: ${d["Description"]}<br>` +
-        `Last Updated: ${d["Last Updated"]}`,
-    );
+    const locations = target ? [target.Country] : data.map((d) => d["Country"]);
+    const risks = target
+      ? [getRiskLevel(target["Risk Level"])]
+      : data.map((d) => getRiskLevel(d["Risk Level"]));
+    const hoverText = target
+      ? `<b>${target.Country}</b><br>` +
+        `Risk Level: ${target["Risk Level"]}<br>` +
+        `Description: ${target.Description}<br>` +
+        `Last Updated: ${target["Last Updated"]}`
+      : data.map(
+          (d) =>
+            `<b>${d["Country"]}</b><br>` +
+            `Risk Level: ${d["Risk Level"]}<br>` +
+            `Description: ${d["Description"]}<br>` +
+            `Last Updated: ${d["Last Updated"]}`,
+        );
 
     const plotData: Partial<Data>[] = [
       {
@@ -166,6 +181,7 @@ export default function Choropleth({ data }: ChoroplethProps) {
           x: [0, 1],
           y: [0, 1],
         },
+        fitbounds: "locations",
         showframe: false,
         showcoastlines: true,
         coastlinecolor: "#444",
@@ -174,7 +190,7 @@ export default function Choropleth({ data }: ChoroplethProps) {
         showocean: true,
         oceancolor: "#ccf2ff",
         showcountries: true,
-        resolution: 110,
+        resolution: 50,
       },
       autosize: false,
       width: initialWidth,
@@ -207,7 +223,7 @@ export default function Choropleth({ data }: ChoroplethProps) {
         Plotly.purge(plotElement);
       }
     };
-  }, [data]);
+  }, [data, targetCountry]);
 
   return (
     <div className="relative w-screen h-screen">
@@ -236,7 +252,7 @@ export default function Choropleth({ data }: ChoroplethProps) {
         <ColorBox color="#b30003" label="Do Not Travel" />
       </div>
       {/* Phone version */}
-      <div className="flex sm:hidden fixed bottom-4 left-4 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-md shadow-lg flex-col items-start gap-2 text-xs font-mono">
+      <div className="flex sm:hidden fixed top-6 left-4 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-md shadow-lg flex-col items-start gap-2 text-xs font-mono">
         <span className="font-[family-name:var(--font-geist-mono)] font-bold">
           Risk Levels:
         </span>

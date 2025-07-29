@@ -1,9 +1,10 @@
 "use client";
 
 // import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCSV } from "../../lib/hooks/useCSV";
 import ChoroplethMap from "@/app/components/ChoroplethMap";
+import Search from "@/app/components/Search";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -21,6 +22,7 @@ import {
 export default function Home() {
   const { data, parsedData, isLoading, error, fetchCSVData, parseCSVData } =
     useCSV();
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCSVData();
@@ -33,7 +35,14 @@ export default function Home() {
   }, [data, parseCSVData]);
 
   if (isLoading) {
-    return <div>Loading Map...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-8">
+        <div className="scale-400 animate-spin">🇨🇦</div>
+        <div className="font-medium font-[family-name:var(--font-geist-mono)] text-lg">
+          Loading Map...
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -42,7 +51,8 @@ export default function Home() {
 
   return (
     <>
-      <nav className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+      {/* Desktop and iPad version */}
+      <nav className="hidden sm:block sm:absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
         <NavigationMenu>
           <NavigationMenuList className="flex items-center space-x-1 bg-white/50 backdrop-blur-md border border-black rounded-full px-4 py-0.5 shadow-lg whitespace-nowrap font-[family-name:var(--font-geist-mono)]">
             <NavigationMenuItem className="font-bold">
@@ -51,8 +61,35 @@ export default function Home() {
             <div className="w-px h-6 bg-gray-400"></div>
             <NavigationMenuItem>
               <NavigationMenuLink href="/how-it-works">
-                How It Works
+                How it works
               </NavigationMenuLink>
+            </NavigationMenuItem>
+            <div className="w-px h-6 bg-gray-400"></div>
+            <NavigationMenuItem>
+              <Search
+                data={parsedData || []}
+                onCountrySelect={setSelectedCountry}
+              ></Search>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </nav>
+      {/* Phone version */}
+      <nav className="block sm:hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        <NavigationMenu>
+          <NavigationMenuList className="flex items-center space-x-1 bg-white/50 backdrop-blur-md border border-black rounded-full px-4 py-0.5 shadow-lg whitespace-nowrap font-[family-name:var(--font-geist-mono)]">
+            <NavigationMenuItem className="font-bold">
+              <NavigationMenuLink href="/">Home</NavigationMenuLink>
+            </NavigationMenuItem>
+            <div className="w-px h-6 bg-gray-400"></div>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="/how-it-works">
+                How it works
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <div className="w-px h-6 bg-gray-400"></div>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="">How it works</NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
@@ -64,10 +101,14 @@ export default function Home() {
       </div> */}
         {parsedData && parsedData.length > 0 ? (
           <>
-            <ChoroplethMap data={parsedData} />
+            <ChoroplethMap data={parsedData} targetCountry={selectedCountry} />
           </>
         ) : (
-          <div>No data available.</div>
+          <div className="flex flex-col items-center justify-center h-screen">
+            <div className="font-medium font-[family-name:var(--font-geist-mono)] text-lg">
+              No Data Available.
+            </div>
+          </div>
         )}
       </div>
     </>
