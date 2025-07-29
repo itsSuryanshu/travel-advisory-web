@@ -222,7 +222,8 @@ export default function Choropleth({ data }: ChoroplethProps) {
           transformOrigin: "center center",
         }}
       />
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/50 backdrop-blur-md border border-black px-4 sm:px-2 py-2 sm:py-1.5 rounded-full shadow-lg flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs font-mono sm:rounded-sm max-w-[95vw]">
+      {/* Desktop and iPad version */}
+      <div className="hidden sm:flex fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-full shadow-lg flex-row items-center gap-4 text-xs font-mono">
         <span className="font-[family-name:var(--font-geist-mono)] font-bold">
           Risk Levels:
         </span>
@@ -232,6 +233,16 @@ export default function Choropleth({ data }: ChoroplethProps) {
         <div className="w-px h-6 bg-gray-400"></div>
         <ColorBox color="#ce6711" label="Reconsider Travel" />
         <div className="w-px h-6 bg-gray-400"></div>
+        <ColorBox color="#b30003" label="Do Not Travel" />
+      </div>
+      {/* Phone version */}
+      <div className="flex sm:hidden fixed bottom-4 left-4 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-md shadow-lg flex-col items-start gap-2 text-xs font-mono">
+        <span className="font-[family-name:var(--font-geist-mono)] font-bold">
+          Risk Levels:
+        </span>
+        <ColorBox color="#75ef75" label="Normal Precautions" />
+        <ColorBox color="#e2e65b" label="Increased Caution" />
+        <ColorBox color="#ce6711" label="Reconsider Travel" />
         <ColorBox color="#b30003" label="Do Not Travel" />
       </div>
     </div>

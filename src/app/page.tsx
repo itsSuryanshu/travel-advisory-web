@@ -44,7 +44,7 @@ export default function Home() {
     <>
       <nav className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
         <NavigationMenu>
-          <NavigationMenuList className="flex, items-center space-x-1 bg-white/50 backdrop-blur-md border border-black rounded-full px-4 py-0.5 shadow-lg font-[family-name:var(--font-geist-mono)]">
+          <NavigationMenuList className="flex items-center space-x-1 bg-white/50 backdrop-blur-md border border-black rounded-full px-4 py-0.5 shadow-lg whitespace-nowrap font-[family-name:var(--font-geist-mono)]">
             <NavigationMenuItem className="font-bold">
               <NavigationMenuLink href="/">Home</NavigationMenuLink>
             </NavigationMenuItem>
