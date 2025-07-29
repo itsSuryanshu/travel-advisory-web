@@ -41,10 +41,10 @@ export default function Search({ data, onCountrySelect }: SearchProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between rounded-full"
+          className="w-[150px] h-8 border-gray-700 justify-between rounded-full"
         >
-          {selectedCountry ? selectedCountry.Country : "Select a Country"}
-          <SearchIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {selectedCountry ? selectedCountry.Country : "Search"}
+          <SearchIcon className="ml-2 h-4 w-4 shrink-0 text-black opacity-75" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">

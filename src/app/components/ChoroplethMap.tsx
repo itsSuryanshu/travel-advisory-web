@@ -124,8 +124,8 @@ export default function Choropleth({
         colorscale: [
           [0, "#75ef75"],
           [0.33, "#e2e65b"],
-          [0.66, "#ce6711"],
-          [1, "#b30003"],
+          [0.66, "#ff7d3c"],
+          [1, "#d42e2e"],
         ],
         showscale: false, //hide the scale
         colorbar: {
@@ -247,9 +247,9 @@ export default function Choropleth({
         <div className="w-px h-6 bg-gray-400"></div>
         <ColorBox color="#e2e65b" label="Increased Caution" />
         <div className="w-px h-6 bg-gray-400"></div>
-        <ColorBox color="#ce6711" label="Reconsider Travel" />
+        <ColorBox color="#ff7d3c" label="Reconsider Travel" />
         <div className="w-px h-6 bg-gray-400"></div>
-        <ColorBox color="#b30003" label="Do Not Travel" />
+        <ColorBox color="#d42e2e" label="Do Not Travel" />
       </div>
       {/* Phone version */}
       <div className="flex sm:hidden fixed top-6 left-4 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-md shadow-lg flex-col items-start gap-2 text-xs font-mono">
@@ -258,8 +258,8 @@ export default function Choropleth({
         </span>
         <ColorBox color="#75ef75" label="Normal Precautions" />
         <ColorBox color="#e2e65b" label="Increased Caution" />
-        <ColorBox color="#ce6711" label="Reconsider Travel" />
-        <ColorBox color="#b30003" label="Do Not Travel" />
+        <ColorBox color="#ff7d3c" label="Reconsider Travel" />
+        <ColorBox color="#d42e2e" label="Do Not Travel" />
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useCSV } from "../../lib/hooks/useCSV";
 import ChoroplethMap from "@/app/components/ChoroplethMap";
 import Search from "@/app/components/Search";
+import Drawer from "@/app/components/Drawer";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -89,11 +90,22 @@ export default function Home() {
             </NavigationMenuItem>
             <div className="w-px h-6 bg-gray-400"></div>
             <NavigationMenuItem>
-              <NavigationMenuLink href="">How it works</NavigationMenuLink>
+              <Search
+                data={parsedData || []}
+                onCountrySelect={setSelectedCountry}
+              ></Search>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </nav>
+      {/* Drawer */}
+      <div className="hidden sm:block sm:absolute bottom-20 left-1/2 transform -translate-x-1/2 z-50">
+        <Drawer data={parsedData || []} />
+      </div>
+      <div className="block sm:hidden absolute bottom-20 left-1/2 transform -translate-x-1/2 z-50">
+        <Drawer data={parsedData || []} />
+      </div>
+      {/* Maps */}
       <div className="w-screen h-screen overflow-hidden">
         {/* <div>
         <h3>Parsed Data:</h3>
