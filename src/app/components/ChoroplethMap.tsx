@@ -61,9 +61,13 @@ export default function Choropleth({
         }
 
         const plotElement = plotRef.current;
-        const locations = target
+        let locations = target
           ? [target.Country]
           : data.map((d) => d["Country"]);
+
+        // Fix for Turkiye
+        locations = locations.map((c) => (c === "Türkiye" ? "Turkey" : c));
+
         const risks = target
           ? [getRiskLevel(target["Risk Level"])]
           : data.map((d) => getRiskLevel(d["Risk Level"]));
