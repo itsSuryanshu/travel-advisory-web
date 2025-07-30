@@ -24,6 +24,10 @@ const ColorBox = ({ color, label }: { color: string; label: string }) => (
   </div>
 );
 
+const getResolution = (target: string | null) => {
+  return target ? 50 : 110;
+};
+
 export default function Choropleth({
   data,
   targetCountry = null,
@@ -64,10 +68,12 @@ export default function Choropleth({
           ? [getRiskLevel(target["Risk Level"])]
           : data.map((d) => getRiskLevel(d["Risk Level"]));
         const hoverText = target
-          ? `<b>${target.Country}</b><br>` +
-            `Risk Level: ${target["Risk Level"]}<br>` +
-            `Description: ${target.Description}<br>` +
-            `Last Updated: ${target["Last Updated"]}`
+          ? [
+              `<b>${target.Country}</b><br>` +
+                `Risk Level: ${target["Risk Level"]}<br>` +
+                `Description: ${target.Description}<br>` +
+                `Last Updated: ${target["Last Updated"]}`,
+            ]
           : data.map(
               (d) =>
                 `<b>${d["Country"]}</b><br>` +
@@ -84,11 +90,14 @@ export default function Choropleth({
             z: risks,
             text: hoverText,
             hovertemplate: "%{text}<extra></extra>",
+            animation: {
+              duration: 0,
+            },
             colorscale: [
               [0, "#75ef75"],
               [0.33, "#e2e65b"],
-              [0.66, "#ce6711"],
-              [1, "#b30003"],
+              [0.66, "#ff7d3c"],
+              [1, "#d42e2e"],
             ] as [number, string][],
             showscale: false,
             colorbar: {
@@ -137,7 +146,8 @@ export default function Choropleth({
               x: [0, 1],
               y: [0, 1],
             },
-            fitbounds: "locations" as const,
+            //fitbounds: "locations" as const,
+            ...(target ? { fitbounds: "locations" as const } : {}),
             showframe: false,
             showcoastlines: true,
             coastlinecolor: "#444",
@@ -146,7 +156,7 @@ export default function Choropleth({
             showocean: true,
             oceancolor: "#ccf2ff",
             showcountries: true,
-            resolution: 50,
+            resolution: getResolution(targetCountry || null),
           },
           autosize: false,
           width: initialWidth,
@@ -155,12 +165,16 @@ export default function Choropleth({
         };
 
         const config = {
-          responsive: false,
+          responsive: true,
           displayModeBar: true,
           displaylogo: false,
           scrollZoom: true,
           autosizable: true,
           modeBarButtonsToRemove: ["select2d", "lasso2d", "toImage"],
+          staticPlot: false,
+          doubleClick: false,
+          showTips: false,
+          plotGlPixelRatio: 2,
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -260,9 +274,9 @@ export default function Choropleth({
         <div className="w-px h-6 bg-gray-400"></div>
         <ColorBox color="#e2e65b" label="Increased Caution" />
         <div className="w-px h-6 bg-gray-400"></div>
-        <ColorBox color="#ce6711" label="Reconsider Travel" />
+        <ColorBox color="#ff7d3c" label="Reconsider Travel" />
         <div className="w-px h-6 bg-gray-400"></div>
-        <ColorBox color="#b30003" label="Do Not Travel" />
+        <ColorBox color="#d42e2e" label="Do Not Travel" />
       </div>
       {/* Phone version */}
       <div className="flex sm:hidden fixed top-6 left-4 z-50 bg-white/50 backdrop-blur-md border border-black px-4 py-2 rounded-md shadow-lg flex-col items-start gap-2 text-xs font-mono">
@@ -271,8 +285,8 @@ export default function Choropleth({
         </span>
         <ColorBox color="#75ef75" label="Normal Precautions" />
         <ColorBox color="#e2e65b" label="Increased Caution" />
-        <ColorBox color="#ce6711" label="Reconsider Travel" />
-        <ColorBox color="#b30003" label="Do Not Travel" />
+        <ColorBox color="#ff7d3c" label="Reconsider Travel" />
+        <ColorBox color="#d42e2e" label="Do Not Travel" />
       </div>
     </div>
   );
