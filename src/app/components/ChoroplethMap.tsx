@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { PlotMouseEvent, PlotDatum, PlotlyHTMLElement } from "plotly.js";
 
 interface ParsedData {
   Country: string;
@@ -12,7 +13,10 @@ interface ParsedData {
 interface ChoroplethProps {
   data: ParsedData[];
   targetCountry: string | null;
+  onCountryClick?: (countryName: string) => void;
 }
+
+type ChoroplethPoint = PlotDatum & { location: string };
 
 const ColorBox = ({ color, label }: { color: string; label: string }) => (
   <div className="flex items-center gap-1 text-xs">
@@ -31,6 +35,7 @@ const getResolution = (target: string | null) => {
 export default function Choropleth({
   data,
   targetCountry = null,
+  onCountryClick,
 }: ChoroplethProps) {
   const plotRef = useRef<HTMLDivElement>(null);
   const getRiskLevel = (risk: string): number => {
@@ -185,6 +190,34 @@ export default function Choropleth({
         await Plotly.newPlot(plotElement, plotData, layout, config as any);
 
         if (!isMounted) return;
+
+        // Add click event listener
+        if (onCountryClick) {
+          const clickHandler = (eventData: PlotMouseEvent) => {
+            if (eventData.points && eventData.points.length > 0) {
+              const point = eventData.points[0] as ChoroplethPoint;
+              const countryName = point.location;
+              // Fix for Turkey display name
+              const displayName =
+                countryName === "Turkey" ? "turkiye" : countryName;
+              onCountryClick(displayName);
+            }
+          };
+
+          (plotElement as unknown as PlotlyHTMLElement).on(
+            "plotly_click",
+            clickHandler,
+          );
+
+          // Add to cleanup functions
+          cleanupFunctions.push(() => {
+            if (plotElement) {
+              (plotElement as unknown as PlotlyHTMLElement).removeAllListeners(
+                "plotly_click",
+              );
+            }
+          });
+        }
 
         // Resize function that uses the loaded Plotly
         const resizeMapWithPlotly = async () => {

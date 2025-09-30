@@ -5,6 +5,7 @@ import { useCSV } from "../../lib/hooks/useCSV";
 import ChoroplethMap from "@/app/components/ChoroplethMap";
 import Search from "@/app/components/Search";
 import Drawer from "@/app/components/Drawer";
+import CountrySite from "@/app/components/CountrySite";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -23,6 +24,18 @@ export default function Home() {
   const { data, parsedData, isLoading, error, fetchCSVData, parseCSVData } =
     useCSV();
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [clickedCountry, setClickedCountry] = useState<string | null>(null);
+  const [isSiteOpen, setIsSiteOpen] = useState(false);
+
+  const handleCountryClick = (countryName: string) => {
+    setClickedCountry(countryName);
+    setIsSiteOpen(true);
+  };
+
+  const handleCloseSite = () => {
+    setIsSiteOpen(false);
+    setClickedCountry(null);
+  };
 
   useEffect(() => {
     fetchCSVData();
@@ -112,7 +125,11 @@ export default function Home() {
       </div> */}
         {parsedData && parsedData.length > 0 ? (
           <>
-            <ChoroplethMap data={parsedData} targetCountry={selectedCountry} />
+            <ChoroplethMap
+              data={parsedData}
+              targetCountry={selectedCountry}
+              onCountryClick={handleCountryClick}
+            />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-screen">
@@ -122,6 +139,13 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* CountrySite Component */}
+      <CountrySite
+        country={clickedCountry || ""}
+        isOpen={isSiteOpen}
+        onClose={handleCloseSite}
+      />
     </>
   );
 }
