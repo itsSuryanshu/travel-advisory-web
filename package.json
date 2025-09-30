@@ -26,7 +26,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "lucide-react": "^0.526.0",
-    "next": "15.3.4",
+    "next": "^15.5.4",
     "plotly.js": "^3.0.3",
     "plotly.js-dist": "^3.0.1",
     "plotly.js-dist-min": "^3.0.3",
